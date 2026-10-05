@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f6f5f0">
+  <title>Stable Matching Explorer</title>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="stylesheet" href="/app.css">
+  <script src="/app.js" defer></script>
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <div class="brand"><span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></span><span>Stable <span class="brand-light">Matching Explorer</span></span></div>
+      <div class="topbar-right"><span class="live-dot"></span><span>LIVE EXPERIMENT</span><span class="topbar-divider"></span><span>Columbia speed dating data</span></div>
+    </header>
+
+    <main>
+      <section class="intro">
+        <div>
+          <p class="eyebrow">THE STABLE MATCHING EXPERIMENT <span> / 01</span></p>
+          <h1>See the match.<br><em>Question the outcome.</em></h1>
+          <p class="intro-copy">Explore how three stable matching methods connect people, and how the picture changes as matched pairs leave the pool.</p>
+        </div>
+        <div class="intro-aside"><span class="intro-aside-label">CURRENT VIEW</span><strong id="view-label">Wave 02 <span>·</span> Round 01</strong><span id="pool-note">Loading preference graph…</span></div>
+      </section>
+
+      <section class="controls-panel" aria-label="Experiment controls">
+        <div class="control control-wave">
+          <div class="control-heading"><label for="wave-slider">Dataset wave</label><output id="wave-value" for="wave-slider">02</output></div>
+          <input id="wave-slider" type="range" min="1" max="21" value="2" step="1">
+          <div class="range-ends"><span>WAVE 01</span><span>WAVE 21</span></div>
+        </div>
+        <div class="control control-round">
+          <div class="control-heading"><label for="round-slider">Iteration</label><output id="round-value" for="round-slider">01</output></div>
+          <input id="round-slider" type="range" min="1" max="10" value="1" step="1">
+          <div class="range-ends"><span>INITIAL</span><span>ROUND 10</span></div>
+          <p class="control-note">Both people in a departing pair leave before the next round.</p>
+        </div>
+        <div class="control control-removal">
+          <div class="control-heading"><label for="removal-slider">Pairs leaving each round</label><output id="removal-value" for="removal-slider">5%</output></div>
+          <input id="removal-slider" type="range" min="0" max="25" value="5" step="1">
+          <div class="range-ends"><span>0%</span><span>25%</span></div>
+          <p class="control-note">From minimum-disappointment matches; lower average pair rank means higher odds.</p>
+        </div>
+        <div class="control control-seed">
+          <div class="control-heading"><span>Random draw</span><span class="seed-value" id="seed-value">#07</span></div>
+          <button type="button" id="reshuffle" class="soft-button"><span aria-hidden="true">↻</span> Reshuffle departures</button>
+          <p>Same draw for every algorithm</p>
+        </div>
+      </section>
+
+      <section class="workspace">
+        <div class="graph-panel panel">
+          <div class="panel-header">
+            <div><p class="eyebrow">THE NETWORK</p><h2>Who matches with whom</h2></div>
+            <div class="graph-options"><label class="switch-label"><input id="show-eligible" type="checkbox" checked><span class="switch-track"></span>Show eligible edges</label></div>
+          </div>
+          <div class="method-row" role="group" aria-label="Matching algorithm">
+            <button class="method active" type="button" data-method="minimum_regret" aria-pressed="true"><span class="method-dot dot-mint"></span>Minimum disappointment</button>
+            <button class="method" type="button" data-method="gale_shapley_v_proposes" aria-pressed="false"><span class="method-dot dot-peach"></span>GS · M proposes</button>
+            <button class="method" type="button" data-method="gale_shapley_u_proposes" aria-pressed="false"><span class="method-dot dot-lilac"></span>GS · F proposes</button>
+          </div>
+          <div class="graph-headings"><span><b class="group-dot group-m"></b>M <small>MALE PARTICIPANTS</small></span><span><b class="group-dot group-f"></b>F <small>FEMALE PARTICIPANTS</small></span></div>
+          <div class="graph-canvas" id="graph-canvas"><svg id="graph" viewBox="0 0 1000 690" role="img" aria-label="Bipartite graph of eligible and selected matches"></svg><div id="loading" class="loading hidden"><span class="spinner"></span><span>Computing stable matchings…</span></div></div>
+          <div class="graph-footer"><span><span class="legend-line legend-selected"></span> Selected match</span><span><span class="legend-line legend-eligible"></span> Eligible pair</span><span id="edge-count">— eligible pairs</span></div>
+          <p id="selection-note" class="selection-note" aria-live="polite">Click a node to spotlight its current match.</p>
+        </div>
+
+        <aside class="insights panel">
+          <div class="panel-header insights-header"><div><p class="eyebrow">THE OUTCOME</p><h2>Match summary</h2></div><span class="stable-pill" id="stable-pill">CHECKING</span></div>
+          <div class="selected-method"><span id="selected-method-name">Minimum disappointment</span><span id="selected-method-note">Smallest worst rank</span></div>
+          <div class="metric-explainer"><span class="explainer-mark" aria-hidden="true">?</span><p><strong>What is disappointment?</strong> It is the rank of a matched person's partner. 1 means first choice; higher numbers mean a less preferred choice. Unmatched people are counted separately.</p></div>
+          <div class="hero-stat"><div><span class="stat-label">HIGHEST DISAPPOINTMENT</span><strong id="highest-regret">—</strong></div><p>The least preferred assigned partner, measured by rank.</p></div>
+          <div class="stat-grid">
+            <div class="stat-card"><span class="stat-label">LOWEST DISAPPOINTMENT</span><strong id="lowest-regret">—</strong></div>
+            <div class="stat-card"><span class="stat-label">MEAN DISAPPOINTMENT</span><strong id="mean-regret">—</strong></div>
+            <div class="stat-card"><span class="stat-label">MATCHED PAIRS</span><strong id="matched-pairs">—</strong></div>
+            <div class="stat-card"><span class="stat-label">UNMATCHED PEOPLE</span><strong id="unmatched-people">—</strong></div>
+          </div>
+          <div class="quartile-grid" aria-label="Disappointment percentiles among matched participants">
+            <div class="quartile-card"><span class="stat-label">25TH PERCENTILE</span><strong id="p25-disappointment">—</strong></div>
+            <div class="quartile-card"><span class="stat-label">MEDIAN</span><strong id="median-disappointment">—</strong></div>
+            <div class="quartile-card"><span class="stat-label">75TH PERCENTILE</span><strong id="p75-disappointment">—</strong></div>
+          </div>
+          <div class="distribution"><div class="section-heading"><h3>Disappointment distribution</h3><span id="total-regret">Total —</span></div><div id="distribution-chart" class="distribution-chart"></div><p class="axis-note">People ↑ &nbsp;·&nbsp; Partner rank → &nbsp;·&nbsp; Same scale across methods &amp; rounds</p></div>
+        </aside>
+      </section>
+
+    </main>
+    <footer class="footer"><span>STABLE MATCHING EXPLORER <span>·</span> AN INTERACTIVE EXPERIMENT</span><span>Ranks from responses · Stable matching by design</span></footer>
+  </div>
+</body>
+</html>

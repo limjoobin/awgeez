@@ -1,0 +1,47 @@
+x-python-app: &python-app
+  image: stable-matching-explorer:local
+  build: .
+  volumes:
+    - dataset-data:/app/data
+  environment:
+    REDIS_URL: redis://redis:6379/0
+
+services:
+  redis:
+    image: redis:7-alpine
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 2s
+      timeout: 2s
+      retries: 30
+
+  dataset:
+    <<: *python-app
+    command: ["python", "scripts/download_speed_dating.py"]
+    restart: "no"
+
+  ingest:
+    <<: *python-app
+    command: ["python", "scripts/ingest_speed_dating.py", "--all-waves"]
+    restart: "no"
+    depends_on:
+      redis:
+        condition: service_healthy
+      dataset:
+        condition: service_completed_successfully
+
+  ui:
+    <<: *python-app
+    command: ["python", "scripts/serve_ui.py"]
+    ports:
+      - "8000:8000"
+    depends_on:
+      ingest:
+        condition: service_completed_successfully
+
+volumes:
+  redis-data:
+  dataset-data:
