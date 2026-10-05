@@ -4,7 +4,7 @@ import unittest
 from pathlib import Path
 
 from datasets.speed_dating import (
-    ATTRIBUTES, WEIGHT_COLUMNS, available_waves, load_speed_dating_wave,
+    ATTRIBUTES, WEIGHT_COLUMNS, available_waves,
     preprocess_speed_dating_wave,
 )
 from matching.gale_shapley import gale_shapley
@@ -33,7 +33,7 @@ class SpeedDatingTests(unittest.TestCase):
                 writer.writerow(("wave", "iid", "id", "gender", "pid", "partner", "dec", "like", *ATTRIBUTES, *WEIGHT_COLUMNS))
                 writer.writerows((*row, *("5" for _ in ATTRIBUTES), *("1" for _ in WEIGHT_COLUMNS)) for row in rows)
             self.assertEqual(available_waves(path), [2])
-            graph, report = load_speed_dating_wave(path, 2)
+            graph, report, _ = preprocess_speed_dating_wave(path, 2)
         self.assertEqual((len(graph.u), len(graph.v)), (2, 1))
         self.assertEqual(graph.edges, (("u1", "v3"),))
         self.assertEqual(graph.u_preferences["u2"], ("v3",))
@@ -46,11 +46,11 @@ class SpeedDatingTests(unittest.TestCase):
 
     @unittest.skipUnless(REAL_CSV.exists(), "Downloaded speed-dating CSV is absent")
     def test_downloaded_data_has_unequal_and_unresolved_waves(self):
-        graph, report = load_speed_dating_wave(REAL_CSV, 2)
+        graph, report, _ = preprocess_speed_dating_wave(REAL_CSV, 2)
         self.assertEqual((report.rows, len(graph.u), len(graph.v), len(graph.edges)),
                          (608, 19, 16, 295))
         self.assertGreater(report.attribute_resolved_groups, 0)
-        _, wave_five = load_speed_dating_wave(REAL_CSV, 5)
+        _, wave_five, _ = preprocess_speed_dating_wave(REAL_CSV, 5)
         self.assertEqual(wave_five.unresolved_partner_rows, 10)
         self.assertEqual(wave_five.yes_decisions, 95)
 

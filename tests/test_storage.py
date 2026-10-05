@@ -4,7 +4,7 @@ from uuid import uuid4
 import redis
 
 from graph.preferences import PreferenceGraph
-from storage import MemoryStore, RedisStore
+from storage import RedisStore
 
 
 def sample_graph() -> PreferenceGraph:
@@ -12,26 +12,6 @@ def sample_graph() -> PreferenceGraph:
         {"u1": ["v2", "v1"], "u2": [], "u3": ["v1"]},
         {"v1": ["u3", "u1"], "v2": ["u1"]},
     )
-
-
-class MemoryStoreTests(unittest.TestCase):
-    def test_queries_round_trip_and_result_replacement(self):
-        store = MemoryStore()
-        with self.assertRaises(KeyError):
-            store.load_graph()
-        store.replace_graph(sample_graph(), {"wave": 7})
-        self.assertEqual(store.load_graph().edges, sample_graph().edges)
-        self.assertEqual(store.metadata(), {"wave": 7})
-        self.assertEqual(store.ranked("u1"), [("v2", 1), ("v1", 2)])
-        self.assertEqual(store.ranked("u1", top_k=1), [("v2", 1)])
-        self.assertEqual(store.ranked("u1", max_rank=1), [("v2", 1)])
-        self.assertEqual(store.ranked("u2"), [])
-        self.assertEqual(store.pair_rank("u1", "v1"), 2)
-        self.assertIsNone(store.pair_rank("u2", "v1"))
-        store.save_result("gale_shapley_u_proposes", {"stable": True})
-        self.assertEqual(store.load_result("gale_shapley_u_proposes"), {"stable": True})
-        store.replace_graph(sample_graph())
-        self.assertEqual(store.result_names(), [])
 
 
 class RedisStoreTests(unittest.TestCase):

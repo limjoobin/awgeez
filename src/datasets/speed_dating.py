@@ -211,8 +211,3 @@ def preprocess_speed_dating_wave(
         },
     )
     return graph, report, scores
-
-
-def load_speed_dating_wave(path: str | Path, wave: int) -> tuple[PreferenceGraph, IngestionReport]:
-    graph, report, _ = preprocess_speed_dating_wave(path, wave)
-    return graph, report

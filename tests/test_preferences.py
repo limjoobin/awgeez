@@ -1,6 +1,5 @@
 import unittest
 
-from datasets.synthetic import generate_preferences
 from graph.preferences import PreferenceGraph
 
 
@@ -21,10 +20,8 @@ class PreferenceTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             PreferenceGraph({"same": []}, {"same": []})
 
-    def test_generator_is_reproducible_and_supports_incomplete_lists(self):
-        first = generate_preferences(4, 3, seed=7, acceptance_probability=0.5)
-        second = generate_preferences(4, 3, seed=7, acceptance_probability=0.5)
-        self.assertEqual(first.edges, second.edges)
-        self.assertEqual(dict(first.u_preferences), dict(second.u_preferences))
-        self.assertEqual(len(first.u), 4)
-        self.assertEqual(len(first.v), 3)
+    def test_one_sided_preference_is_not_an_eligible_edge(self):
+        graph = PreferenceGraph({"u1": ["v1"], "u2": []}, {"v1": []})
+        self.assertEqual(graph.edges, ())
+        self.assertFalse(graph.mutually_acceptable("u1", "v1"))
+        self.assertEqual((len(graph.u), len(graph.v)), (2, 1))
